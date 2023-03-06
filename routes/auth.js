@@ -9,11 +9,12 @@ const { place_recharge, register, login, forgotPassword,
         get_all_controllers, get_all_feedbacks, get_blocked_users, add_blocked_users,
         get_user, get_user_recharges, get_user_withdrawals, get_paginated_user,
         update_balance, search_users, get_promo_amount, invite_rewards, lvl1, lvl2, lvl3,
-        withdrawalSum
+        withdrawalSum, post_an_issue, get_user_issue
 } = require('../controllers/auth');
 
 const router = express.Router();
 
+router.post('/post_an_issue', post_an_issue);
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot_password", forgotPassword);
@@ -55,5 +56,6 @@ router.post('/lvl1', lvl1);
 router.post('/lvl2', lvl2);
 router.post('/lvl3', lvl3);
 router.post('/withdrawalSum', withdrawalSum);
+router.post('/get_user_issue', get_user_issue);
 
 module.exports = router;

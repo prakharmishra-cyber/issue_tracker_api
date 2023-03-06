@@ -9,7 +9,44 @@ const Withdrawal = require('../model/withdrawal');
 const Amount = require('../model/amount');
 const Controller = require("../model/controller");
 const Blocked = require('../model/blocked');
+const Issue = require('../model/Issue');
 
+exports.get_user_issue = async (req, res) => {
+  const data = await Issue.find({
+    "mobno":req.body.mobno
+  });
+  try {
+    res.status(200).json(
+      data
+    );
+  } catch (error) {
+    res.status(400).json({
+      message:'Something went wrong'
+    });
+
+  }
+}
+
+exports.post_an_issue = async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  try {
+    await Issue.create(data).then(async (issue_data) => {
+      await User.updateOne({ mobno: data.mobno }, {
+        $push: {
+          issues_posted: issue_data._id
+        }
+      })
+    }).then(() => {
+      res.status(200).json({ message: 'Issue Posted Successfully' });
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      messaage: 'Something went wrong!'
+    });
+  }
+}
 
 exports.login = async (req, res) => {
   const { mobno, pwd } = req.body
@@ -36,8 +73,8 @@ exports.login = async (req, res) => {
 }
 
 exports.register = async (req, res) => {
-  const { mobno, pwd, wpwd, invt } = req.body;
-  await User.findOne({ "mobno": mobno }).then(async(responses) => {
+  const { mobno, pwd } = req.body;
+  await User.findOne({ "mobno": mobno }).then(async (responses) => {
     if (responses) {
       return res.status(200).json({ message: 'Mobile Number already registered!' });
     } else {
@@ -48,69 +85,14 @@ exports.register = async (req, res) => {
         await User.create({
           mobno,
           pwd,
-          wpwd,
           time: new Date(),
-          balance: 110,
-          recharge_amount: 0,
-          withdrawal_sum: 0,
-          earning: 0,
-          user_invite: referralCodeGenerator.alpha('lowercase', 6),
-          parent_invt: invt,
-          grand_parent_invt: '',
-          directRecharge: 0,
-          indirectRecharge: 0,
-          directMember: [],
-          indirectMember: [],
-          boughtLong: 0,
-          showShort: 0,
-          boughtShort: 0,
-          lastWithdrawal: new Date(),
-          bank_details: new Bank()
-        }).then(async (user) => {
-
-          const parent_data = await User.findOne({ user_invite: user.parent_invt }).then((res) => res);
-          return { user, parent_data };
-
-        }).then(async ({ user, parent_data }) => {
-
-          const grand_parent_data = await User.findOne({ user_invite: parent_data.parent_invt }).then((res) => res)
-          return { user, parent_data, grand_parent_data };
-
-        }).then(async ({ user, parent_data, grand_parent_data }) => {
-
-          const great_grand_parent_data = await User.findOne({ user_invite: grand_parent_data.parent_invt }).then((res) => res)
-          return { user, parent_data, grand_parent_data, great_grand_parent_data };
-
-        }).then(async ({ user, parent_data, grand_parent_data, great_grand_parent_data }) => {
-
-          const newUser = await User.updateOne({ _id: user._id }, {
-            $set: {
-              parent_id: parent_data._id,
-              grand_parent_id: grand_parent_data._id,
-              great_grand_parent_id: great_grand_parent_data._id
-            }
-          });
-
-          await User.updateOne({ _id: parent_data._id },
-            { $push: { directMember: user._id } }
-          );
-
-          await User.updateOne({ _id: grand_parent_data._id },
-            { $push: { indirectMember: user._id } }
-          );
-
-          await User.updateOne({ _id: great_grand_parent_data._id },
-            { $push: { in_indirectMember: user._id } }
-          );
-
-          return user._id;
-        })
-          .then(user_id =>
-            res.status(200).json({
-              message: "User successfully created",
-              user_id: user_id
-            })
-          )
+          issues_posted: []
+        }).then((user) =>
+          res.status(200).json({
+            message: "User successfully created",
+            user
+          })
+        )
       } catch (err) {
         console.log(err);
         res.status(401).json({
