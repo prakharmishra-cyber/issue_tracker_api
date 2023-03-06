@@ -14,7 +14,6 @@ const { place_recharge, register, login, forgotPassword,
 
 const router = express.Router();
 
-router.post('/post_an_issue', post_an_issue);
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot_password", forgotPassword);
@@ -57,5 +56,6 @@ router.post('/lvl2', lvl2);
 router.post('/lvl3', lvl3);
 router.post('/withdrawalSum', withdrawalSum);
 router.post('/get_user_issue', get_user_issue);
+router.post('/post_an_issue', post_an_issue);
 
 module.exports = router;
